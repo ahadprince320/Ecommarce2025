@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:ecommarceproject/services/my_app_function.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -31,13 +33,16 @@ class GoogleButton extends StatelessWidget {
         subtitle: error.message.toString(),
         fct: () {},
       );
+      log(error.toString());
     } catch (error) {
       await MyappFunction.showErrorOrWarningDialog(
         context: context,
         subtitle: error.toString(),
         fct: () {},
       );
+      log(error.toString());
     }
+
   }
 
   @override
