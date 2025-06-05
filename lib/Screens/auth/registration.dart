@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecommarceproject/services/my_app_function.dart';
 import 'package:ecommarceproject/widgets/subtitle_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,10 +8,10 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../constant/validator.dart';
 import '../../root_screen.dart';
-import '../../services/my_app_function.dart';
 import '../../widgets/app_name.dart';
 import '../../widgets/auth/image_picker.dart';
 import '../../widgets/title_text.dart';
+import '../loading_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const routName = "/RegisterScreen";
@@ -79,6 +81,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+        final User? user = auth.currentUser;
+        final String uid = user!.uid;
+        await FirebaseFirestore.instance.collection("users").doc(uid).set({
+          'userId': uid,
+          'userName': _nameController.text,
+          'userImage': "",
+          'userEmail': _emailController.text.toLowerCase(),
+          'createdAt': Timestamp.now(),
+          'userWish': [],
+          'userCart': [],
+        });
         Fluttertoast.showToast(
           msg: "An account has been created",
           textColor: Colors.white,
@@ -133,190 +146,194 @@ class _RegisterScreenState extends State<RegisterScreen> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // const BackButton(),
-                const SizedBox(
-                  height: 60,
-                ),
-                const AppNameText(
-                  fontSize: 30,
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TitlesTextWidget(label: "Welcome back!"),
-                        subtitlewidgets(label: "Your welcome message"),
-                      ],
-                    )),
-                const SizedBox(
-                  height: 30,
-                ),
-                SizedBox(
-                  height: size.width * 0.3,
-                  width: size.width * 0.3,
-                  child: PickImageWidget(
-                    pickedImage: _pickedImage,
-                    function: () async {
-                      await localImagePicker();
-                    },
+        body: LoadingManager(
+          isLoading: _isLoading,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // const BackButton(),
+                  const SizedBox(
+                    height: 60,
                   ),
-                ),
+                  const AppNameText(
+                    fontSize: 30,
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TitlesTextWidget(label: "Welcome back!"),
+                          subtitlewidgets(label: "Your welcome message"),
+                        ],
+                      )),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  SizedBox(
+                    height: size.width * 0.3,
+                    width: size.width * 0.3,
+                    child: PickImageWidget(
+                      pickedImage: _pickedImage,
+                      function: () async {
+                        await localImagePicker();
+                      },
+                    ),
+                  ),
 
-                const SizedBox(
-                  height: 30,
-                ),
-                Form(
-                  key: _formkey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextFormField(
-                        controller: _nameController,
-                        focusNode: _nameFocusNode,
-                        textInputAction: TextInputAction.next,
-                        keyboardType: TextInputType.name,
-                        decoration: const InputDecoration(
-                          hintText: 'Full Name',
-                          prefixIcon: Icon(
-                            Icons.person,
-                          ),
-                        ),
-                        onFieldSubmitted: (value) {
-                          FocusScope.of(context).requestFocus(_emailFocusNode);
-                        },
-                        validator: (value) {
-                          return MyValidators.displayNamevalidator(value);
-                        },
-                      ),
-                      const SizedBox(
-                        height: 16.0,
-                      ),
-                      TextFormField(
-                        controller: _emailController,
-                        focusNode: _emailFocusNode,
-                        textInputAction: TextInputAction.next,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          hintText: "Email address",
-                          prefixIcon: Icon(
-                            IconlyLight.message,
-                          ),
-                        ),
-                        onFieldSubmitted: (value) {
-                          FocusScope.of(context)
-                              .requestFocus(_passwordFocusNode);
-                        },
-                        validator: (value) {
-                          return MyValidators.emailValidator(value);
-                        },
-                      ),
-                      const SizedBox(
-                        height: 16.0,
-                      ),
-                      TextFormField(
-                        controller: _passwordController,
-                        focusNode: _passwordFocusNode,
-                        textInputAction: TextInputAction.next,
-                        keyboardType: TextInputType.visiblePassword,
-                        obscureText: obscureText,
-                        decoration: InputDecoration(
-                          hintText: "***********",
-                          prefixIcon: const Icon(
-                            IconlyLight.lock,
-                          ),
-                          suffixIcon: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                obscureText = !obscureText;
-                              });
-                            },
-                            icon: Icon(
-                              obscureText
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  Form(
+                    key: _formkey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextFormField(
+                          controller: _nameController,
+                          focusNode: _nameFocusNode,
+                          textInputAction: TextInputAction.next,
+                          keyboardType: TextInputType.name,
+                          decoration: const InputDecoration(
+                            hintText: 'Full Name',
+                            prefixIcon: Icon(
+                              Icons.person,
                             ),
                           ),
+                          onFieldSubmitted: (value) {
+                            FocusScope.of(context)
+                                .requestFocus(_emailFocusNode);
+                          },
+                          validator: (value) {
+                            return MyValidators.displayNamevalidator(value);
+                          },
                         ),
-                        onFieldSubmitted: (value) async {
-                          FocusScope.of(context)
-                              .requestFocus(_repeatPasswordFocusNode);
-                        },
-                        validator: (value) {
-                          return MyValidators.passwordValidator(value);
-                        },
-                      ),
-                      const SizedBox(
-                        height: 16.0,
-                      ),
-                      TextFormField(
-                        controller: _repeatPasswordController,
-                        focusNode: _repeatPasswordFocusNode,
-                        textInputAction: TextInputAction.done,
-                        keyboardType: TextInputType.visiblePassword,
-                        obscureText: obscureText,
-                        decoration: InputDecoration(
-                          hintText: "Repeat password",
-                          prefixIcon: const Icon(
-                            IconlyLight.lock,
-                          ),
-                          suffixIcon: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                obscureText = !obscureText;
-                              });
-                            },
-                            icon: Icon(
-                              obscureText
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
+                        const SizedBox(
+                          height: 16.0,
+                        ),
+                        TextFormField(
+                          controller: _emailController,
+                          focusNode: _emailFocusNode,
+                          textInputAction: TextInputAction.next,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            hintText: "Email address",
+                            prefixIcon: Icon(
+                              IconlyLight.message,
                             ),
                           ),
+                          onFieldSubmitted: (value) {
+                            FocusScope.of(context)
+                                .requestFocus(_passwordFocusNode);
+                          },
+                          validator: (value) {
+                            return MyValidators.emailValidator(value);
+                          },
                         ),
-                        onFieldSubmitted: (value) async {
-                          await _registerFCT();
-                        },
-                        validator: (value) {
-                          return MyValidators.repeatPasswordValidator(
-                            value: value,
-                            password: _passwordController.text,
-                          );
-                        },
-                      ),
-                      const SizedBox(
-                        height: 36.0,
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.all(12.0),
-                            // backgroundColor: Colors.red,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                12.0,
+                        const SizedBox(
+                          height: 16.0,
+                        ),
+                        TextFormField(
+                          controller: _passwordController,
+                          focusNode: _passwordFocusNode,
+                          textInputAction: TextInputAction.next,
+                          keyboardType: TextInputType.visiblePassword,
+                          obscureText: obscureText,
+                          decoration: InputDecoration(
+                            hintText: "***********",
+                            prefixIcon: const Icon(
+                              IconlyLight.lock,
+                            ),
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  obscureText = !obscureText;
+                                });
+                              },
+                              icon: Icon(
+                                obscureText
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                               ),
                             ),
                           ),
-                          icon: const Icon(IconlyLight.addUser),
-                          label: const Text("Sign up"),
-                          onPressed: () async {
-                            await _registerFCT();
+                          onFieldSubmitted: (value) async {
+                            FocusScope.of(context)
+                                .requestFocus(_repeatPasswordFocusNode);
+                          },
+                          validator: (value) {
+                            return MyValidators.passwordValidator(value);
                           },
                         ),
-                      ),
-                    ],
+                        const SizedBox(
+                          height: 16.0,
+                        ),
+                        TextFormField(
+                          controller: _repeatPasswordController,
+                          focusNode: _repeatPasswordFocusNode,
+                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.visiblePassword,
+                          obscureText: obscureText,
+                          decoration: InputDecoration(
+                            hintText: "Repeat password",
+                            prefixIcon: const Icon(
+                              IconlyLight.lock,
+                            ),
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  obscureText = !obscureText;
+                                });
+                              },
+                              icon: Icon(
+                                obscureText
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                            ),
+                          ),
+                          onFieldSubmitted: (value) async {
+                            await _registerFCT();
+                          },
+                          validator: (value) {
+                            return MyValidators.repeatPasswordValidator(
+                              value: value,
+                              password: _passwordController.text,
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 36.0,
+                        ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.all(12.0),
+                              // backgroundColor: Colors.red,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  12.0,
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(IconlyLight.addUser),
+                            label: const Text("Sign up"),
+                            onPressed: () async {
+                              await _registerFCT();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

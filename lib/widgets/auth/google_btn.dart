@@ -6,10 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ionicons/ionicons.dart';
 
+import '../../Screens/loading_screen.dart';
 import '../../root_screen.dart';
 
 class GoogleButton extends StatelessWidget {
-  const GoogleButton({super.key});
+   GoogleButton({super.key});
   Future<void> _googleSignSignIn({required BuildContext context}) async {
     try {
       final googleSignIn = GoogleSignIn();
@@ -44,31 +45,34 @@ class GoogleButton extends StatelessWidget {
     }
 
   }
-
+  bool _isLoading = false;
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        elevation: 1,
-        padding: const EdgeInsets.all(12.0),
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            12.0,
+    return LoadingManager(
+      isLoading: _isLoading,
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          elevation: 1,
+          padding: const EdgeInsets.all(12.0),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              12.0,
+            ),
           ),
         ),
+        icon: const Icon(
+          Ionicons.logo_google,
+          color: Colors.red,
+        ),
+        label: const Text(
+          "Sign in with google",
+          style: TextStyle(color: Colors.black),
+        ),
+        onPressed: () async {
+          await _googleSignSignIn(context: context);
+        },
       ),
-      icon: const Icon(
-        Ionicons.logo_google,
-        color: Colors.red,
-      ),
-      label: const Text(
-        "Sign in with google",
-        style: TextStyle(color: Colors.black),
-      ),
-      onPressed: () async {
-        await _googleSignSignIn(context: context);
-      },
     );
   }
 }
