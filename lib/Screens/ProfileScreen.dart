@@ -1,18 +1,21 @@
 import 'package:ecommarceproject/services/my_app_function.dart';
-import 'package:ecommarceproject/widgets/app_name.dart';
 import 'package:ecommarceproject/widgets/subtitle_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:provider/provider.dart';
 
+import '../Model/user_model.dart';
 import '../Provider/theam_provider.dart';
+import '../Provider/user_provider.dart';
 import '../services/assets_manager.dart';
+import '../widgets/app_name.dart';
 import '../widgets/title_text.dart';
 import 'auth/login.dart';
 import 'inner_screen/order/order_screen.dart';
 import 'inner_screen/viewed_recently.dart';
 import 'inner_screen/wishlist.dart';
+import 'loading_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,6 +26,34 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   User? user = FirebaseAuth.instance.currentUser;
+  UserModel? userModel;
+  bool _isLoading = true;
+  Future<void> fetchUserInfo() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      userModel = await userProvider.fetchUserInfo();
+    } catch (error) {
+      await MyappFunction.showErrorOrWarningDialog(
+        context: context,
+        subtitle: error.toString(),
+        fct: () {},
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    fetchUserInfo();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<TheamProvider>(context);
@@ -36,25 +67,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         title: const AppNameText(fontSize: 20),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Visibility(
-              visible: false,
-              child: Padding(
-                padding: EdgeInsets.all(18.0),
-                child: TitlesTextWidget(
-                  label: "Please login to have unlimited access",
+      body: LoadingManager(
+        isLoading: _isLoading,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Visibility(
+                visible: user == null ? true : false,
+                child: const Padding(
+                  padding: EdgeInsets.all(18.0),
+                  child: TitlesTextWidget(
+                    label: "Please login to have unlimited access",
+                  ),
                 ),
               ),
-            ),
-            Visibility(
-              visible: true,
-              child: Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              userModel == null
+                  ? const SizedBox.shrink()
+                  : Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 5),
                 child: Row(
                   children: [
                     Container(
@@ -64,11 +97,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: BoxShape.circle,
                         color: Theme.of(context).cardColor,
                         border: Border.all(
-                            color: Theme.of(context).colorScheme.background,
+                            color:
+                            Theme.of(context).colorScheme.background,
                             width: 3),
-                        image: const DecorationImage(
+                        image: DecorationImage(
                           image: NetworkImage(
-                            "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png",
+                            userModel!.userImage,
                           ),
                           fit: BoxFit.fill,
                         ),
@@ -77,127 +111,133 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(
                       width: 10,
                     ),
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TitlesTextWidget(label: "Hadi Kachmar"),
-                        SizedBox(
+                        TitlesTextWidget(label: userModel!.userName),
+                        const SizedBox(
                           height: 6,
                         ),
-                        subtitlewidgets(label: "Coding.with.hadi@gmail.com")
+                        subtitlewidgets(label: userModel!.userEmail)
                       ],
                     )
                   ],
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Divider(
-                    thickness: 1,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  const TitlesTextWidget(
-                    label: "General",
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  CustomListTile(
-                    text: "All Order",
-                    imagePath: AssetsManager.orderSvg,
-                    function: () {
-                      Navigator.pushNamed(
-                        context,
-                        OrdersScreenFree.routeName,
-                      );
-                    },
-                  ),
-                  CustomListTile(
-                    text: "Wishlist",
-                    imagePath: AssetsManager.wishlistSvg,
-                    function: () {
-                      Navigator.pushNamed(context, WishlistScreen.routName);
-                    },
-                  ),
-                  CustomListTile(
-                    text: "Viewed recently",
-                    imagePath: AssetsManager.recent,
-                    function: () {
-                      Navigator.pushNamed(
-                          context, ViewedRecentlyScreen.routName);
-                    },
-                  ),
-                  CustomListTile(
-                    text: "Address",
-                    imagePath: AssetsManager.address,
-                    function: () {},
-                  ),
-                  const SizedBox(height: 6),
-                  const Divider(
-                    thickness: 1,
-                  ),
-                  const SizedBox(height: 6),
-                  const TitlesTextWidget(
-                    label: "Settings",
-                  ),
-                  const SizedBox(height: 10),
-                  SwitchListTile(
-                    secondary: Image.asset(
-                      AssetsManager.theme,
-                      height: 34,
-                    ),
-                    title: Text(themeProvider.getIsDarkTheme
-                        ? "Dark Mode"
-                        : "Light Mode"),
-                    value: themeProvider.getIsDarkTheme,
-                    onChanged: (value) {
-                      themeProvider.setDarkTheme(themeValue: value);
-                    },
-                  ),
-                ],
+              const SizedBox(
+                height: 15,
               ),
-            ),
-            Center(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      30.0,
+              Padding(
+                padding: const EdgeInsets.all(14.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Divider(
+                      thickness: 1,
                     ),
-                  ),
-                ),
-                icon: Icon(user == null ? Icons.login : Icons.logout),
-                label: Text(user == null ? "Login" : "Logout"),
-                onPressed: () async {
-                  if (user == null) {
-                    Navigator.pushNamed(context, LoginScreen.routeName);
-                  } else {
-                    await MyappFunction.showErrorOrWarningDialog(
-                      context: context,
-                      subtitle: "Are you sure you want to signout",
-                      fct: () async {
-                        await FirebaseAuth.instance.signOut();
-                        if (!mounted) return;
-                        Navigator.pushReplacementNamed(
-                            context, LoginScreen.routeName);
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    const TitlesTextWidget(
+                      label: "General",
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Visibility(
+                      visible: userModel == null ? false : true,
+                      child: CustomListTile(
+                        text: "All Order",
+                        imagePath: AssetsManager.orderSvg,
+                        function: () {
+                          Navigator.pushNamed(
+                            context,
+                            OrdersScreenFree.routeName,
+                          );
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: userModel == null ? false : true,
+                      child: CustomListTile(
+                        text: "Wishlist",
+                        imagePath: AssetsManager.wishlistSvg,
+                        function: () {
+                          Navigator.pushNamed(context, WishlistScreen.routName);
+                        },
+                      ),
+                    ),
+                    CustomListTile(
+                      text: "Viewed recently",
+                      imagePath: AssetsManager.recent,
+                      function: () {
+                        Navigator.pushNamed(
+                            context, ViewedRecentlyScreen.routName);
                       },
-                      isError: false,
-                    );
-                  }
-                },
+                    ),
+                    CustomListTile(
+                      text: "Address",
+                      imagePath: AssetsManager.address,
+                      function: () {},
+                    ),
+                    const SizedBox(height: 6),
+                    const Divider(
+                      thickness: 1,
+                    ),
+                    const SizedBox(height: 6),
+                    const TitlesTextWidget(
+                      label: "Settings",
+                    ),
+                    const SizedBox(height: 10),
+                    SwitchListTile(
+                      secondary: Image.asset(
+                        AssetsManager.theme,
+                        height: 34,
+                      ),
+                      title: Text(themeProvider.getIsDarkTheme
+                          ? "Dark Mode"
+                          : "Light Mode"),
+                      value: themeProvider.getIsDarkTheme,
+                      onChanged: (value) {
+                        themeProvider.setDarkTheme(themeValue: value);
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              Center(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        30.0,
+                      ),
+                    ),
+                  ),
+                  icon: Icon(user == null ? Icons.login : Icons.logout),
+                  label: Text(user == null ? "Login" : "Logout"),
+                  onPressed: () async {
+                    if (user == null) {
+                      Navigator.pushNamed(context, LoginScreen.routeName);
+                    } else {
+                      await MyappFunction.showErrorOrWarningDialog(
+                        context: context,
+                        subtitle: "Are you sure you want to SignOut",
+                        fct: () async {
+                          await FirebaseAuth.instance.signOut();
+                          if (!mounted) return;
+                          Navigator.pushReplacementNamed(
+                              context, LoginScreen.routeName);
+                        },
+                        isError: false,
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

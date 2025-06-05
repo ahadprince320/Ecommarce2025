@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'Provider/ViewedProdModel_provider.dart';
 import 'Provider/cart_provider.dart';
 import 'Provider/product_provider.dart';
+import 'Provider/user_provider.dart';
 import 'Provider/wish_list.dart';
 import 'Screens/SearchScreen.dart';
 import 'Screens/auth/registration.dart';
@@ -58,6 +59,9 @@ class MyApp extends StatelessWidget {
             return ViewedProdProvider();
           },
         ),
+        ChangeNotifierProvider(create: (_) {
+          return UserProvider();
+        }),
       ],
       child: Consumer<TheamProvider>(
         builder: (context, themeProvider, child) {
