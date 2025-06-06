@@ -40,7 +40,7 @@ class GoogleButton extends StatelessWidget {
         }
       }
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        Navigator.pushReplacementNamed(context, bottombar.routeName);
+        Navigator.pushReplacementNamed(context, RootScreen.routeName);
       });
     } on FirebaseException catch (error) {
       await MyappFunction.showErrorOrWarningDialog(

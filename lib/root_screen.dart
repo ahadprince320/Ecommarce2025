@@ -1,30 +1,60 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:provider/provider.dart';
 
 import 'Provider/cart_provider.dart';
+import 'Provider/product_provider.dart';
 import 'Screens/Card/CardScreen.dart';
 import 'Screens/ProfileScreen.dart';
 import 'Screens/SearchScreen.dart';
 import 'Screens/home_screen.dart';
 
-class bottombar extends StatefulWidget {
-  static const routeName = '/bottombar';
-  const bottombar({super.key});
+class RootScreen extends StatefulWidget {
+  static const routeName = '/RootScreen';
+  const RootScreen({super.key});
 
   @override
-  State<bottombar> createState() => _bottombarState();
+  State<RootScreen> createState() => _RootScreenState();
 }
 
-class _bottombarState extends State<bottombar> {
+class _RootScreenState extends State<RootScreen> {
   late List<Widget> screens;
   int currentScreen = 0;
   late PageController controller;
+  bool isLoadingProd = true;
   @override
   void initState() {
     super.initState();
-    screens = [HomeScreen(), SearchScreen(), CartScreen(), ProfileScreen()];
+    screens = const [
+      HomeScreen(),
+      SearchScreen(),
+      CartScreen(),
+      ProfileScreen(),
+    ];
     controller = PageController(initialPage: currentScreen);
+  }
+
+  Future<void> fetchFCT() async {
+    final productsProvider =
+    Provider.of<ProductsProvider>(context, listen: false);
+
+    try {
+      Future.wait({
+        productsProvider.fetchProducts(),
+      });
+    } catch (error) {
+      log(error.toString());
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (isLoadingProd) {
+      fetchFCT();
+    }
+    super.didChangeDependencies();
   }
 
   @override
@@ -32,12 +62,13 @@ class _bottombarState extends State<bottombar> {
     final cartProvider = Provider.of<CartProvider>(context);
     return Scaffold(
       body: PageView(
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         controller: controller,
         children: screens,
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentScreen,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 10,
         height: kBottomNavigationBarHeight,
         onDestinationSelected: (index) {

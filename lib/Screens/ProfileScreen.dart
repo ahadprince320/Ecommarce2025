@@ -1,4 +1,3 @@
-import 'package:ecommarceproject/services/my_app_function.dart';
 import 'package:ecommarceproject/widgets/subtitle_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import '../Model/user_model.dart';
 import '../Provider/theam_provider.dart';
 import '../Provider/user_provider.dart';
 import '../services/assets_manager.dart';
+import '../services/my_app_function.dart';
 import '../widgets/app_name.dart';
 import '../widgets/title_text.dart';
 import 'auth/login.dart';
@@ -24,7 +24,10 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   User? user = FirebaseAuth.instance.currentUser;
   UserModel? userModel;
   bool _isLoading = true;
@@ -56,6 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final themeProvider = Provider.of<TheamProvider>(context);
     return Scaffold(
       appBar: AppBar(

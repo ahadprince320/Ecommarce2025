@@ -72,10 +72,10 @@ class MyApp extends StatelessWidget {
               isDarkTheme: themeProvider.getIsDarkTheme,
               context: context,
             ),
-            home: const bottombar(),
+            home: const RootScreen(),
             //home: const LoginScreen(),
             routes: {
-              bottombar.routeName: (context) => const bottombar(),
+              RootScreen.routeName: (context) => const RootScreen(),
               ProductDetailsScreen.routName:
                   (context) => const ProductDetailsScreen(),
               WishlistScreen.routName: (context) => const WishlistScreen(),

@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
           textColor: Colors.white,
         );
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, bottombar.routeName);
+        Navigator.pushReplacementNamed(context, RootScreen.routeName);
       } on FirebaseException catch (error) {
         await MyappFunction.showErrorOrWarningDialog(
           context: context,
@@ -262,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: const Text("Guest?"),
                                     onPressed: () async {
                                       Navigator.of(context)
-                                          .pushNamed(bottombar.routeName);
+                                          .pushNamed(RootScreen.routeName);
                                     },
                                   ),
                                 ),
