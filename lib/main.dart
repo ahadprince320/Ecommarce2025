@@ -75,7 +75,7 @@ class MyApp extends StatelessWidget {
             home: const RootScreen(),
             //home: const LoginScreen(),
             routes: {
-              RootScreen.routeName: (context) => const RootScreen(),
+              RootScreen.routeName: (context) => const RootScreen (),
               ProductDetailsScreen.routName:
                   (context) => const ProductDetailsScreen(),
               WishlistScreen.routName: (context) => const WishlistScreen(),
