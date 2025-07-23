@@ -39,7 +39,7 @@ class _SearchScreenState extends State<SearchScreen> {
     String? passedCategory =
     ModalRoute.of(context)!.settings.arguments as String?;
     List<ProductModel> productList = passedCategory == null
-        ? productsProvider.products
+        ? productsProvider.getProducts
         : productsProvider.findByCategory(categoryName: passedCategory);
     return GestureDetector(
       onTap: () {
